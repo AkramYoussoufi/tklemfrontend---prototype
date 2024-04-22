@@ -20,6 +20,7 @@ export class ParentComponent {
   selectedEntitys!: Parent[];
   selectedStatus!: { boolean: boolean; name: string };
   selectedStudentName!: string[];
+  filteredEntities: Parent[] = [];
   cols!: any[];
   status: any[] = [
     { boolean: false, name: 'Disabled' },
@@ -43,15 +44,16 @@ export class ParentComponent {
   ngOnInit() {
     this.cols = [
       { field: 'email', header: 'Email', filter: true },
-      { field: 'password', header: 'Password', filter: true },
       { field: 'name', header: 'Nom', filter: true },
       { field: 'cin', header: 'CIN', filter: true },
       { field: 'studentsNames', header: 'Les etudiants', filter: true },
       { field: 'status', header: 'Status', filter: true },
+      { field: 'password', header: 'Password', filter: true },
     ];
     this.parentService.getAllParents().subscribe(
       (data) => {
         this.entitys = data;
+        this.filteredEntities = [...this.entitys];
         this.loading = false;
       },
       (error) => {
@@ -122,6 +124,7 @@ export class ParentComponent {
           .subscribe(
             (data: any) => {
               this.entitys = this.entitys.filter((val) => val.id !== parent.id);
+              this.filteredEntities = [...this.entitys];
               this.entity = {};
               this.messageService.add({
                 severity: 'success',
@@ -160,6 +163,7 @@ export class ParentComponent {
             this.entitys = this.entitys.filter(
               (val) => !this.selectedEntitys?.includes(val)
             );
+            this.filteredEntities = [...this.entitys];
             this.selectedEntitys = [];
             this.messageService.add({
               severity: 'success',
@@ -185,7 +189,20 @@ export class ParentComponent {
     this.entityDialog = false;
     this.submitted = false;
   }
-
+  onGlobalSearch(event: Event) {
+    const searchTerm = (event.target as HTMLInputElement).value.toLowerCase();
+  
+    if (searchTerm) {
+      this.filteredEntities = this.entitys.filter((entity) => {
+        return entity.email?.toLowerCase().includes(searchTerm)
+               || entity.status?.toString().toLowerCase().includes(searchTerm)
+               || entity.name?.toString().toLowerCase().includes(searchTerm)
+               || entity.cin?.toString().toLowerCase().includes(searchTerm);
+      });
+    } else {
+      this.filteredEntities = [...this.entitys];
+    }
+  }
   getStatus(status: boolean | undefined) {
     console.log(status);
     switch (status) {
@@ -255,6 +272,7 @@ export class ParentComponent {
                 cin: data.cin,
               };
               this.entitys = [...this.entitys];
+              this.filteredEntities = [...this.entitys];
             },
             (error) => {
               console.log(error);
@@ -295,6 +313,7 @@ export class ParentComponent {
                 life: 3000,
               });
               this.entitys = [...this.entitys];
+              this.filteredEntities = [...this.entitys];
             },
             (error) => {
               this.messageService.add({

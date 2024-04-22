@@ -25,6 +25,7 @@ export class RecepteurComponent {
   loading: boolean = true;
   submitted: boolean = false;
   entityDialog: boolean = false;
+  filteredEntities: Receptor[] = [];
   first = 0;
   rows = 10;
 
@@ -45,6 +46,7 @@ export class RecepteurComponent {
     this.receptorService.getAllReceptors().subscribe(
       (data) => {
         this.entitys = data;
+        this.filteredEntities = [...this.entitys];
         this.loading = false;
         console.log(data);
       },
@@ -115,6 +117,7 @@ export class RecepteurComponent {
               this.entitys = this.entitys.filter(
                 (val) => val.id !== receptor.id
               );
+              this.filteredEntities = [...this.entitys];
               this.entity = {};
               this.messageService.add({
                 severity: 'success',
@@ -136,7 +139,19 @@ export class RecepteurComponent {
       },
     });
   }
-
+  onGlobalSearch(event: Event) {
+    const searchTerm = (event.target as HTMLInputElement).value.toLowerCase();
+  
+    if (searchTerm) {
+      this.filteredEntities = this.entitys.filter((entity) => {
+        return entity.email?.toLowerCase().includes(searchTerm)
+               || entity.status?.toString().toLowerCase().includes(searchTerm)
+               || entity.name?.toString().toLowerCase().includes(searchTerm) ;
+      });
+    } else {
+      this.filteredEntities = [...this.entitys];
+    }
+  }
   deleteSelectedEntitys() {
     console.log(this.selectedEntitys);
     const extractedIds = this.selectedEntitys?.map((entity) => {
@@ -153,6 +168,7 @@ export class RecepteurComponent {
             this.entitys = this.entitys.filter(
               (val) => !this.selectedEntitys?.includes(val)
             );
+            this.filteredEntities = [...this.entitys];
             this.selectedEntitys = [];
             this.messageService.add({
               severity: 'success',
@@ -244,6 +260,7 @@ export class RecepteurComponent {
                 name: data.name,
               };
               this.entitys = [...this.entitys];
+              this.filteredEntities = [...this.entitys];
             },
             (error) => {
               console.log(error);
@@ -280,6 +297,7 @@ export class RecepteurComponent {
                 life: 3000,
               });
               this.entitys = [...this.entitys];
+              this.filteredEntities = [...this.entitys];
             },
             (error) => {
               this.messageService.add({

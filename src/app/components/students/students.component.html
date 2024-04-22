@@ -8,14 +8,14 @@
     </ng-template>
 
     <ng-template pTemplate="right">
-        <p-fileUpload mode="basic" chooseLabel="Choose" name="demo[]" label="Excel" accept=".xls,.xlsx"
+        <p-fileUpload mode="basic" chooseLabel="Importation Excel" name="demo[]" label="Excel" accept=".xls,.xlsx"
             [maxFileSize]="1000000" (onSelect)="onUpload($event)" class="mr-2 inline-block"
             chooseIcon="pi-file-excel"></p-fileUpload>
 
     </ng-template>
 </p-toolbar>
 
-<p-table #dt1 dataKey="id" [loading]="loading" [columns]="cols" [value]="entitys"
+<p-table #dt1 dataKey="id" [loading]="loading" [columns]="cols" [value]="filteredEntities"
     [tableStyle]="{ 'min-width': '50rem' }" sortMode="multiple" [(selection)]="selectedEntitys"
     styleClass="p-datatable-sm" [paginator]="true" [rows]="10" [showCurrentPageReport]="true"
     currentPageReportTemplate="Affichage {first} à {last} de {totalRecords} entrées" (onPage)="pageChange($event)"
@@ -23,8 +23,12 @@
     <ng-template pTemplate="caption">
         <div class="flex">
 
-            <button pButton label="Clair" class="p-button-outlined" icon="pi pi-filter-slash"
+            <button pButton label="Annuler le triage" class="p-button-outlined" icon="pi pi-filter-slash"
                 (click)="clear(dt1)"></button>
+                <span class="p-input-icon-left ml-auto">
+                  <i class="pi pi-search"></i>
+                <input type="text" placeholder="Recherche globale" (input)="onGlobalSearch($event)" class="p-inputtext p-component">
+              </span>
         </div>
     </ng-template>
     <ng-template pTemplate="header">
@@ -33,9 +37,8 @@
                 <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
             </th>
             <th *ngFor="let col of cols" pSortableColumn="{{ col.field }}">
-                <p-sortIcon field="{{ col.field }}"></p-sortIcon>
                 {{ col.header }}
-                <p-columnFilter type="text" field="{{ col.field }}" display="menu"></p-columnFilter>
+                <p-sortIcon field="{{ col.field }}"></p-sortIcon>
             </th>
             <th></th>
         </tr>

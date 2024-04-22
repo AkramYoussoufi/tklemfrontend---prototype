@@ -30,7 +30,8 @@ export class AdminComponent implements OnInit, AfterViewInit {
   entityDialog: boolean = false;
   first = 0;
   rows = 10;
-
+  filteredEntities: Admin[] = [];
+  
   constructor(
     private adminService: AdminService,
     private messageService: MessageService,
@@ -46,7 +47,9 @@ export class AdminComponent implements OnInit, AfterViewInit {
     ];
     this.adminService.getAllAdmins().subscribe(
       (data) => {
+  
         this.entitys = data;
+        this.filteredEntities = [...this.entitys];
         this.loading = false;
       },
       (error) => {
@@ -59,10 +62,22 @@ export class AdminComponent implements OnInit, AfterViewInit {
         });
       }
     );
+    this.entitys = [...this.entitys];
   }
 
   ngAfterViewInit() {}
-
+  onGlobalSearch(event: Event) {
+    const searchTerm = (event.target as HTMLInputElement).value.toLowerCase();
+  
+    if (searchTerm) {
+      this.filteredEntities = this.entitys.filter((entity) => {
+        return entity.email?.toLowerCase().includes(searchTerm)
+               || entity.status?.toString().toLowerCase().includes(searchTerm);
+      });
+    } else {
+      this.filteredEntities = [...this.entitys];
+    }
+  }
   next() {
     this.first = this.first + this.rows;
   }
@@ -113,6 +128,7 @@ export class AdminComponent implements OnInit, AfterViewInit {
           .subscribe(
             (data: any) => {
               this.entitys = this.entitys.filter((val) => val.id !== admin.id);
+              this.filteredEntities = [...this.entitys];
               this.entity = {};
               this.messageService.add({
                 severity: 'success',
@@ -134,7 +150,6 @@ export class AdminComponent implements OnInit, AfterViewInit {
       },
     });
   }
-
   hideDialog() {
     this.entityDialog = false;
     this.submitted = false;
@@ -214,6 +229,7 @@ export class AdminComponent implements OnInit, AfterViewInit {
                 status: data.status,
               };
               this.entitys = [...this.entitys];
+              this.filteredEntities = [...this.entitys];
             },
             (error) => {
               console.log(error);
@@ -248,6 +264,7 @@ export class AdminComponent implements OnInit, AfterViewInit {
                 life: 3000,
               });
               this.entitys = [...this.entitys];
+              this.filteredEntities = [...this.entitys];
             },
             (error) => {
               this.messageService.add({

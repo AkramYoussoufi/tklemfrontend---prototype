@@ -21,7 +21,7 @@ export class ApprovalsComponent {
   entityDialog: boolean = false;
   first = 0;
   rows = 10;
-
+  filteredEntities: Demande[] = [];
   constructor(
     private messageService: MessageService,
     private demandeService: DemandeService
@@ -36,6 +36,7 @@ export class ApprovalsComponent {
     this.demandeService.getAllDemands().subscribe(
       (data) => {
         this.demandes = data;
+        this.filteredEntities = [...this.demandes];
       },
       (error) => {
         this.messageService.add({
@@ -48,7 +49,22 @@ export class ApprovalsComponent {
       }
     );
   }
+  onGlobalSearch(event: Event) {
+    const searchTerm = (event.target as HTMLInputElement).value.toLowerCase();
 
+    if (searchTerm) {
+      this.filteredEntities = this.demandes.filter((demande) => {
+        const matchesDemandeName = demande.name?.toLowerCase().includes(searchTerm);
+        const matchesStudent = demande.students?.some(student => 
+          student.massarCode?.toLowerCase().includes(searchTerm) ||
+          student.formationName?.toLowerCase().includes(searchTerm)
+        );
+        return matchesDemandeName || matchesStudent;
+      });
+    } else {
+      this.filteredEntities = [...this.demandes];
+    }
+  }
   next() {
     this.first = this.first + this.rows;
   }
@@ -80,6 +96,7 @@ export class ApprovalsComponent {
     this.demandeService.declineDemand(id).subscribe(
       (data) => {
         this.demandes = this.demandes.filter((val) => val.id !== id);
+        this.filteredEntities = [...this.demandes];
         this.messageService.add({
           severity: 'success',
           summary: 'Successful',
@@ -102,6 +119,7 @@ export class ApprovalsComponent {
     this.demandeService.acceptDemand(id).subscribe(
       (data) => {
         this.demandes = this.demandes.filter((val) => val.id !== id);
+        this.filteredEntities = [...this.demandes];
         this.messageService.add({
           severity: 'success',
           summary: 'Successful',
