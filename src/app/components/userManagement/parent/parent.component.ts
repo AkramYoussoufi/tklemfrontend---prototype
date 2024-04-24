@@ -19,8 +19,8 @@ export class ParentComponent {
   entity!: Parent;
   selectedEntitys!: Parent[];
   selectedStatus!: { boolean: boolean; name: string };
-  selectedStudentName!: string[];
   filteredEntities: Parent[] = [];
+  selectedStudentName!: string[] | undefined;
   cols!: any[];
   status: any[] = [
     { boolean: false, name: 'Disabled' },
@@ -32,6 +32,7 @@ export class ParentComponent {
   entityDialog: boolean = false;
   first = 0;
   rows = 10;
+  passwordDialog: boolean = false;
 
   constructor(
     private parentService: ParentService,
@@ -48,7 +49,6 @@ export class ParentComponent {
       { field: 'cin', header: 'CIN', filter: true },
       { field: 'studentsNames', header: 'Les etudiants', filter: true },
       { field: 'status', header: 'Status', filter: true },
-      { field: 'password', header: 'Password', filter: true },
     ];
     this.parentService.getAllParents().subscribe(
       (data) => {
@@ -106,11 +106,17 @@ export class ParentComponent {
   }
 
   editEntity(parent: Parent) {
-    parent.password = '';
     this.entity = { ...parent };
+    this.selectedStudentName = parent.studentsNames;
     this.entityDialog = true;
+
   }
 
+  editPassword(parent: Parent) {
+    this.entity = { ...parent };
+    this.entity.password = '';
+    this.passwordDialog = true;
+  }
   deleteEntity(parent: Parent) {
     this.confirmationService.confirm({
       message: 'Etes-vous sûr que vous voulez supprimer ' + parent.email + '?',
@@ -187,11 +193,12 @@ export class ParentComponent {
 
   hideDialog() {
     this.entityDialog = false;
+    this.passwordDialog = false;
     this.submitted = false;
   }
   onGlobalSearch(event: Event) {
     const searchTerm = (event.target as HTMLInputElement).value.toLowerCase();
-  
+
     if (searchTerm) {
       this.filteredEntities = this.entitys.filter((entity) => {
         return entity.email?.toLowerCase().includes(searchTerm)
@@ -327,6 +334,43 @@ export class ParentComponent {
       }
       this.entityDialog = false;
       this.entity = {};
+    }
+  }
+
+  editPasswordProduct() {
+    this.submitted = true;
+    if (this.entity.email?.trim()) {
+      const index: any = this.entity.id;
+        this.parentService
+          .editParentPassword({
+            id: this.entity.id,
+            email: this.entity.email,
+            password: this.entity.password,
+            status: true,
+            name: this.entity.name,
+            studentsNames: this.selectedStudentName,
+            cin: this.entity.cin,
+          })
+          .subscribe(
+            (data: any) => {
+              this.messageService.add({
+                severity: 'success',
+                summary: 'Successful',
+                detail: "L'Objet a été modifiée avec succès",
+                life: 3000,
+              });
+            },
+            (error) => {
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Failure',
+                detail: "échec de la modification de l'objet sélectionné",
+                life: 3000,
+              });
+            }
+          );
+      this.passwordDialog = false;
+      this.entity = {}
     }
   }
 

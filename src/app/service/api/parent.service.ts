@@ -57,4 +57,14 @@ export class ParentService {
       }
     );
   }
+
+  editParentPassword(data: any) {
+    return this.http.post(
+      Environement.URL_API + 'api/admin/parent/edit-password',
+      data,
+      {
+        headers: this.headers,
+      }
+    );
+  }
 }
