@@ -19,6 +19,7 @@ export class ParentComponent {
   entity!: Parent;
   selectedEntitys!: Parent[];
   selectedStatus!: { boolean: boolean; name: string };
+  filteredEntities: Parent[] = [];
   selectedStudentName!: string[] | undefined;
   cols!: any[];
   status: any[] = [
@@ -29,6 +30,7 @@ export class ParentComponent {
   loading: boolean = true;
   submitted: boolean = false;
   entityDialog: boolean = false;
+  addDialog: boolean = false;
   first = 0;
   rows = 10;
   passwordDialog: boolean = false;
@@ -48,10 +50,12 @@ export class ParentComponent {
       { field: 'cin', header: 'CIN', filter: true },
       { field: 'studentsNames', header: 'Les etudiants', filter: true },
       { field: 'status', header: 'Status', filter: true },
+      { field: 'actions', header: 'Actions', filter: false },
     ];
     this.parentService.getAllParents().subscribe(
       (data) => {
         this.entitys = data;
+        this.filteredEntities = [...this.entitys];
         this.loading = false;
       },
       (error) => {
@@ -100,7 +104,7 @@ export class ParentComponent {
   openNew() {
     this.entity = {};
     this.submitted = false;
-    this.entityDialog = true;
+    this.addDialog = true;
   }
 
   editEntity(parent: Parent) {
@@ -128,6 +132,7 @@ export class ParentComponent {
           .subscribe(
             (data: any) => {
               this.entitys = this.entitys.filter((val) => val.id !== parent.id);
+              this.filteredEntities = [...this.entitys];
               this.entity = {};
               this.messageService.add({
                 severity: 'success',
@@ -166,6 +171,7 @@ export class ParentComponent {
             this.entitys = this.entitys.filter(
               (val) => !this.selectedEntitys?.includes(val)
             );
+            this.filteredEntities = [...this.entitys];
             this.selectedEntitys = [];
             this.messageService.add({
               severity: 'success',
@@ -189,10 +195,24 @@ export class ParentComponent {
 
   hideDialog() {
     this.entityDialog = false;
+    this.addDialog = false;
     this.passwordDialog = false;
     this.submitted = false;
   }
+  onGlobalSearch(event: Event) {
+    const searchTerm = (event.target as HTMLInputElement).value.toLowerCase();
 
+    if (searchTerm) {
+      this.filteredEntities = this.entitys.filter((entity) => {
+        return entity.email?.toLowerCase().includes(searchTerm)
+               || entity.status?.toString().toLowerCase().includes(searchTerm)
+               || entity.name?.toString().toLowerCase().includes(searchTerm)
+               || entity.cin?.toString().toLowerCase().includes(searchTerm);
+      });
+    } else {
+      this.filteredEntities = [...this.entitys];
+    }
+  }
   getStatus(status: boolean | undefined) {
     console.log(status);
     switch (status) {
@@ -262,6 +282,7 @@ export class ParentComponent {
                 cin: data.cin,
               };
               this.entitys = [...this.entitys];
+              this.filteredEntities = [...this.entitys];
             },
             (error) => {
               console.log(error);
@@ -302,6 +323,7 @@ export class ParentComponent {
                 life: 3000,
               });
               this.entitys = [...this.entitys];
+              this.filteredEntities = [...this.entitys];
             },
             (error) => {
               this.messageService.add({
@@ -314,6 +336,7 @@ export class ParentComponent {
           );
       }
       this.entityDialog = false;
+      this.addDialog = false;
       this.entity = {};
     }
   }
@@ -333,13 +356,14 @@ export class ParentComponent {
             cin: this.entity.cin,
           })
           .subscribe(
-            (data: any) => {
+            (data: any) => {  
               this.messageService.add({
                 severity: 'success',
                 summary: 'Successful',
                 detail: "L'Objet a été modifiée avec succès",
                 life: 3000,
               });
+             
             },
             (error) => {
               this.messageService.add({

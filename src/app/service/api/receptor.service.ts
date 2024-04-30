@@ -61,4 +61,13 @@ export class ReceptorService {
       }
     );
   }
+  editReceptorPassword(data: any) {
+    return this.http.post(
+      Environement.URL_API + 'api/admin/receptor/edit-password',
+      data,
+      {
+        headers: this.headers,
+      }
+    );
+  }
 }

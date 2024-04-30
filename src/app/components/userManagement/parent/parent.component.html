@@ -9,7 +9,7 @@
     </ng-template>
 </p-toolbar>
 
-<p-table #dt1 dataKey="id" [loading]="loading" [columns]="cols" [value]="entitys"
+<p-table #dt1 dataKey="id" [loading]="loading" [columns]="cols" [value]="filteredEntities"
     [tableStyle]="{ 'min-width': '50rem' }" sortMode="multiple" [(selection)]="selectedEntitys"
     styleClass="p-datatable-sm" [paginator]="true" [rows]="10" [showCurrentPageReport]="true"
     currentPageReportTemplate="Affichage {first} à {last} de {totalRecords} entrées" (onPage)="pageChange($event)"
@@ -18,19 +18,22 @@
 
         <div class="flex">
 
-            <button pButton label="Clair" class="p-button-outlined" icon="pi pi-filter-slash"
+            <button pButton label="Annuler le triage" class="p-button-outlined" icon="pi pi-filter-slash"
                 (click)="clear(dt1)"></button>
+                <span class="p-input-icon-left ml-auto">
+                    <i class="pi pi-search"></i>
+                  <input type="text" placeholder="Recherche globale" (input)="onGlobalSearch($event)" class="p-inputtext p-component">
+                </span>
         </div>
     </ng-template>
     <ng-template pTemplate="header">
         <tr>
             <th><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th>
             <th *ngFor="let col of cols" pSortableColumn="{{ col.field }}">
-                <p-sortIcon field="{{ col.field }}"></p-sortIcon>
+
                 {{ col.header }}
-                <p-columnFilter type="text" field="{{ col.field }}" display="menu"></p-columnFilter>
+                <p-sortIcon field="{{ col.field }}"></p-sortIcon>
             </th>
-            <th></th>
         </tr>
     </ng-template>
     <ng-template pTemplate="body" let-entity>
@@ -39,6 +42,7 @@
                 <p-tableCheckbox [value]="entity"></p-tableCheckbox>
             </td>
             <td>{{ entity.email }}</td>
+            <!-- <td><span style="filter: blur(3px);cursor: not-allowed;user-select: none;">{{ entity.password }}</span></td> -->
             <td>{{ entity.name }}</td>
             <td>{{ entity.cin }}</td>
             <td>
@@ -59,10 +63,11 @@
             <td>
                 <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2"
                     (click)="editEntity(entity)" style="width: 30px; height: 30px"></button>
-                <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning mr-2"
+                <button pButton pRipple icon="pi pi-key" class="p-button-rounded p-button-warning mr-2"
+                    (click)="editPassword(entity)" style="width: 30px; height: 30px"></button>
+                <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-danger "
                     (click)="deleteEntity(entity)" style="width: 30px; height: 30px"></button>
-              <button pButton pRipple icon="pi pi-key" class="p-button-rounded p-button-danger"
-                      (click)="editPassword(entity)" style="width: 30px; height: 30px"></button>
+        
             </td>
         </tr>
     </ng-template>
@@ -109,6 +114,92 @@
             (click)="saveProduct()"></button>
     </ng-template>
 </p-dialog>
+
+<p-dialog [(visible)]="entityDialog" [style]="{ width: '450px' }" header="Formulaire du parent" [modal]="true"
+    styleClass="p-fluid" class="p-dialog-content">
+    <ng-template style="height: 1000px" pTemplate="content">
+        <div class="field ng-star-inserted" style="padding-top: 35px;">
+            <label for="status">Status</label>
+            <p-dropdown [showClear]="true" [(ngModel)]="selectedStatus" inputId="info" optionLabel="name"
+                [options]="status" />
+        </div>
+        <div class="field ng-star-inserted">
+            <label for="name">Selectione les etudiants du parent</label>
+            <p-multiSelect [options]="studentsName" [(ngModel)]="selectedStudentName"></p-multiSelect>
+        </div>
+        <div class="field ng-star-inserted">
+            <label for="name">Email</label>
+            <input type="text" pInputText id="name" [(ngModel)]="entity.email" required autofocus class="p-inputtext" />
+            <small class="p-error" *ngIf="submitted && !entity.email">Email is required.</small>
+        </div>
+        <div class="field ng-star-inserted">
+            <label for="name">Nom</label>
+            <input type="text" pInputText id="name" [(ngModel)]="entity.name" required autofocus class="p-inputtext" />
+            <small class="p-error" *ngIf="submitted && !entity.email">Nom is required.</small>
+        </div>
+        <div class="field ng-star-inserted">
+            <label for="name">CIN</label>
+            <input type="text" pInputText id="name" [(ngModel)]="entity.cin" required autofocus class="p-inputtext" />
+            <small class="p-error" *ngIf="submitted && !entity.cin">CIN is required.</small>
+        </div>
+        
+    </ng-template>
+
+    <ng-template pTemplate="footer">
+        <button pButton pRipple label="Fermer" icon="pi pi-times" class="p-button-text" (click)="hideDialog()"></button>
+        <button pButton pRipple label="Ajouter" icon="pi pi-check" class="p-button-text"
+            (click)="saveProduct()"></button>
+    </ng-template>
+</p-dialog>
+
+
+<p-dialog [(visible)]="addDialog" [style]="{ width: '450px' }" header="Formulaire du parent" [modal]="true"
+    styleClass="p-fluid" class="p-dialog-content">
+    <ng-template style="height: 1000px" pTemplate="content">
+        <div class="field ng-star-inserted" style="padding-top: 35px;">
+            <label for="status">Status</label>
+            <p-dropdown [showClear]="true" [(ngModel)]="selectedStatus" inputId="info" optionLabel="name"
+                [options]="status" />
+        </div>
+        <div class="field ng-star-inserted">
+            <label for="name">Selectione les etudiants du parent</label>
+            <p-multiSelect [options]="studentsName" [(ngModel)]="selectedStudentName"></p-multiSelect>
+        </div>
+        <div class="field ng-star-inserted">
+            <label for="name">Email</label>
+            <input type="text" pInputText id="name" [(ngModel)]="entity.email" required autofocus class="p-inputtext" />
+            <small class="p-error" *ngIf="submitted && !entity.email">Email is required.</small>
+        </div>
+        <div class="field ng-star-inserted">
+            <label for="name">Nom</label>
+            <input type="text" pInputText id="name" [(ngModel)]="entity.name" required autofocus class="p-inputtext" />
+            <small class="p-error" *ngIf="submitted && !entity.email">Nom is required.</small>
+        </div>
+        <div class="field ng-star-inserted">
+            <label for="name">CIN</label>
+            <input type="text" pInputText id="name" [(ngModel)]="entity.cin" required autofocus class="p-inputtext" />
+            <small class="p-error" *ngIf="submitted && !entity.cin">CIN is required.</small>
+        </div>
+        <div class="field ng-star-inserted" style="padding-bottom: 35px;">
+            <label for="name">Password</label>
+            <p-password
+                mediumRegex="^(((?=.*[a-z])(?=.*[A-Z]))|((?=.*[a-z])(?=.*[0-9]))|((?=.*[A-Z])(?=.*[0-9])))(?=.{6,})"
+                [toggleMask]="true" [maxLength]="50" minlength="8" id="password" [(ngModel)]="entity.password" required
+                autofocus
+                weakLabel="Minimum 8 caractères & Utilisez des chiffres et des caractères minuscules et majuscules"
+                mediumLabel="Minimum 8 caractères & Utilisez des chiffres et des caractères minuscules et majuscules"
+                strongLabel="Le mot de passe est bien sécurisé" class="p-inputtext" />
+            <small class="p-error" *ngIf="submitted && !entity.password">Password is required.</small>
+        </div>
+    </ng-template>
+
+    <ng-template pTemplate="footer">
+        <button pButton pRipple label="Fermer" icon="pi pi-times" class="p-button-text" (click)="hideDialog()"></button>
+        <button pButton pRipple label="Valider" icon="pi pi-check" class="p-button-text"
+            (click)="saveProduct()"></button>
+    </ng-template>
+</p-dialog>
+
 
 <p-dialog [(visible)]="passwordDialog" [style]="{ width: '450px' }" header="Change le mode de passe du parent" [modal]="true"
           styleClass="p-fluid" class="p-dialog-content">

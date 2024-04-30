@@ -35,7 +35,7 @@ export class StudentsComponent implements OnInit, AfterViewInit {
   entityDialog: boolean = false;
   first = 0;
   rows = 10;
-
+filteredEntities: Student[] = [];
   constructor(
     private studentService: StudentService,
     private messageService: MessageService,
@@ -53,6 +53,7 @@ export class StudentsComponent implements OnInit, AfterViewInit {
     this.studentService.getAllStudents().subscribe(
       (data) => {
         this.entitys = data;
+        this.filteredEntities = [...this.entitys];
         this.loading = false;
       },
       (error) => {
@@ -70,7 +71,19 @@ export class StudentsComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit() {}
+  onGlobalSearch(event: Event) {
+    const searchTerm = (event.target as HTMLInputElement).value.toLowerCase();
 
+    if (searchTerm) {
+      this.filteredEntities = this.entitys.filter((entity) => {
+        return entity.name?.toLowerCase().includes(searchTerm)
+               || entity.massarCode?.toLowerCase().includes(searchTerm)
+               || entity.formationName?.toLowerCase().includes(searchTerm);
+      });
+    } else {
+      this.filteredEntities = [...this.entitys];
+    }
+  }
   onUpload(event: UploadEvent) {
     const selectedFile = event.files[0];
     const fileReader = new FileReader();
@@ -145,6 +158,7 @@ export class StudentsComponent implements OnInit, AfterViewInit {
             this.entitys = this.entitys.filter(
               (val) => !this.selectedEntitys?.includes(val)
             );
+            this.filteredEntities = [...this.entitys];
             this.selectedEntitys = null;
             this.messageService.add({
               severity: 'success',
@@ -193,6 +207,7 @@ export class StudentsComponent implements OnInit, AfterViewInit {
               this.entitys = this.entitys.filter(
                 (val) => val.id !== student.id
               );
+              this.filteredEntities = [...this.entitys];
               this.entity = {};
               this.messageService.add({
                 severity: 'success',
@@ -253,6 +268,8 @@ export class StudentsComponent implements OnInit, AfterViewInit {
               massarCode: data.massarCode,
               formationName: data.formation.name,
             };
+            this.entitys = [...this.entitys];
+            this.filteredEntities = [...this.entitys];
           },
           (error) => {
             this.messageService.add({
@@ -278,6 +295,8 @@ export class StudentsComponent implements OnInit, AfterViewInit {
               detail: 'Student Created',
               life: 3000,
             });
+            this.entitys = [...this.entitys];
+            this.filteredEntities = [...this.entitys];
           },
           (error) => {
             this.messageService.add({
@@ -290,7 +309,6 @@ export class StudentsComponent implements OnInit, AfterViewInit {
         );
       }
 
-      this.entitys = [...this.entitys];
       this.entityDialog = false;
       this.entity = {};
     }

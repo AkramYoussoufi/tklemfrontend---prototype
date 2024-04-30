@@ -1,5 +1,7 @@
 @import "../../../variables.scss";
-
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 .sidenavbar {
   height: 100%;
   display: flex;

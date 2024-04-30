@@ -77,4 +77,13 @@ export class RecieverService {
       headers: this.headers,
     });
   }
+  editReceiverPassword(data: any) {
+    return this.http.post(
+      Environement.URL_API + 'api/admin/reciever/edit-password',
+      data,
+      {
+        headers: this.headers,
+      }
+    );
+  }
 }

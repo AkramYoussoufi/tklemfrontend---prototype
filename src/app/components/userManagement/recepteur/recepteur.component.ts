@@ -25,9 +25,11 @@ export class RecepteurComponent {
   loading: boolean = true;
   submitted: boolean = false;
   entityDialog: boolean = false;
+  filteredEntities: Receptor[] = [];
   first = 0;
   rows = 10;
-
+  passwordDialog: boolean = false;
+  addDialog: boolean = false;
   constructor(
     private receptorService: ReceptorService,
     private messageService: MessageService,
@@ -38,13 +40,13 @@ export class RecepteurComponent {
   ngOnInit() {
     this.cols = [
       { field: 'email', header: 'Username', filter: true },
-      { field: 'password', header: 'Password', filter: true },
       { field: 'name', header: 'Nom', filter: true },
       { field: 'status', header: 'Status', filter: true },
     ];
     this.receptorService.getAllReceptors().subscribe(
       (data) => {
         this.entitys = data;
+        this.filteredEntities = [...this.entitys];
         this.loading = false;
         console.log(data);
       },
@@ -89,8 +91,8 @@ export class RecepteurComponent {
 
   openNew() {
     this.entity = {};
+    this.addDialog = true;
     this.submitted = false;
-    this.entityDialog = true;
   }
 
   editEntity(receptor: Receptor) {
@@ -98,7 +100,11 @@ export class RecepteurComponent {
     this.entity = { ...receptor };
     this.entityDialog = true;
   }
-
+  editPassword(receptor: Receptor) {
+    this.entity = { ...receptor };
+    this.entity.password = '';
+    this.passwordDialog = true;
+  }
   deleteEntity(receptor: Receptor) {
     this.confirmationService.confirm({
       message:
@@ -115,6 +121,7 @@ export class RecepteurComponent {
               this.entitys = this.entitys.filter(
                 (val) => val.id !== receptor.id
               );
+              this.filteredEntities = [...this.entitys];
               this.entity = {};
               this.messageService.add({
                 severity: 'success',
@@ -136,7 +143,19 @@ export class RecepteurComponent {
       },
     });
   }
-
+  onGlobalSearch(event: Event) {
+    const searchTerm = (event.target as HTMLInputElement).value.toLowerCase();
+  
+    if (searchTerm) {
+      this.filteredEntities = this.entitys.filter((entity) => {
+        return entity.email?.toLowerCase().includes(searchTerm)
+               || entity.status?.toString().toLowerCase().includes(searchTerm)
+               || entity.name?.toString().toLowerCase().includes(searchTerm) ;
+      });
+    } else {
+      this.filteredEntities = [...this.entitys];
+    }
+  }
   deleteSelectedEntitys() {
     console.log(this.selectedEntitys);
     const extractedIds = this.selectedEntitys?.map((entity) => {
@@ -153,6 +172,7 @@ export class RecepteurComponent {
             this.entitys = this.entitys.filter(
               (val) => !this.selectedEntitys?.includes(val)
             );
+            this.filteredEntities = [...this.entitys];
             this.selectedEntitys = [];
             this.messageService.add({
               severity: 'success',
@@ -176,6 +196,8 @@ export class RecepteurComponent {
 
   hideDialog() {
     this.entityDialog = false;
+    this.passwordDialog = false;
+    this.addDialog = false;
     this.submitted = false;
   }
 
@@ -244,6 +266,7 @@ export class RecepteurComponent {
                 name: data.name,
               };
               this.entitys = [...this.entitys];
+              this.filteredEntities = [...this.entitys];
             },
             (error) => {
               console.log(error);
@@ -269,7 +292,7 @@ export class RecepteurComponent {
               this.entitys.push({
                 id: data.id,
                 email: data.email,
-                password: data.password,
+                password: data.email +""+"123",
                 status: data.status,
                 name: data.name,
               });
@@ -280,6 +303,7 @@ export class RecepteurComponent {
                 life: 3000,
               });
               this.entitys = [...this.entitys];
+              this.filteredEntities = [...this.entitys];
             },
             (error) => {
               this.messageService.add({
@@ -292,10 +316,45 @@ export class RecepteurComponent {
           );
       }
       this.entityDialog = false;
+      this.addDialog = false;
       this.entity = {};
     }
   }
-
+  editPasswordProduct() {
+    this.submitted = true;
+    if (this.entity.email?.trim()) {
+      const index: any = this.entity.id;
+        this.receptorService
+          .editReceptorPassword({
+            id: this.entity.id,
+            email: this.entity.email,
+            password: this.entity.password,
+            status: true,
+            name: this.entity.name,
+          })
+          .subscribe(
+            (data: any) => {  
+              this.messageService.add({
+                severity: 'success',
+                summary: 'Successful',
+                detail: "L'Objet a été modifiée avec succès",
+                life: 3000,
+              });
+             
+            },
+            (error) => {
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Failure',
+                detail: "échec de la modification de l'objet sélectionné",
+                life: 3000,
+              });
+            }
+          );
+      this.passwordDialog = false;
+      this.entity = {}
+    }
+  }
   clear(table: Table) {
     table.clear();
   }
