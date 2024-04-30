@@ -28,7 +28,8 @@ export class RecepteurComponent {
   filteredEntities: Receptor[] = [];
   first = 0;
   rows = 10;
-
+  passwordDialog: boolean = false;
+  addDialog: boolean = false;
   constructor(
     private receptorService: ReceptorService,
     private messageService: MessageService,
@@ -39,7 +40,6 @@ export class RecepteurComponent {
   ngOnInit() {
     this.cols = [
       { field: 'email', header: 'Username', filter: true },
-      { field: 'password', header: 'Password', filter: true },
       { field: 'name', header: 'Nom', filter: true },
       { field: 'status', header: 'Status', filter: true },
     ];
@@ -91,8 +91,8 @@ export class RecepteurComponent {
 
   openNew() {
     this.entity = {};
+    this.addDialog = true;
     this.submitted = false;
-    this.entityDialog = true;
   }
 
   editEntity(receptor: Receptor) {
@@ -100,7 +100,11 @@ export class RecepteurComponent {
     this.entity = { ...receptor };
     this.entityDialog = true;
   }
-
+  editPassword(receptor: Receptor) {
+    this.entity = { ...receptor };
+    this.entity.password = '';
+    this.passwordDialog = true;
+  }
   deleteEntity(receptor: Receptor) {
     this.confirmationService.confirm({
       message:
@@ -192,6 +196,8 @@ export class RecepteurComponent {
 
   hideDialog() {
     this.entityDialog = false;
+    this.passwordDialog = false;
+    this.addDialog = false;
     this.submitted = false;
   }
 
@@ -286,7 +292,7 @@ export class RecepteurComponent {
               this.entitys.push({
                 id: data.id,
                 email: data.email,
-                password: data.password,
+                password: data.email +""+"123",
                 status: data.status,
                 name: data.name,
               });
@@ -310,10 +316,45 @@ export class RecepteurComponent {
           );
       }
       this.entityDialog = false;
+      this.addDialog = false;
       this.entity = {};
     }
   }
-
+  editPasswordProduct() {
+    this.submitted = true;
+    if (this.entity.email?.trim()) {
+      const index: any = this.entity.id;
+        this.receptorService
+          .editReceptorPassword({
+            id: this.entity.id,
+            email: this.entity.email,
+            password: this.entity.password,
+            status: true,
+            name: this.entity.name,
+          })
+          .subscribe(
+            (data: any) => {  
+              this.messageService.add({
+                severity: 'success',
+                summary: 'Successful',
+                detail: "L'Objet a été modifiée avec succès",
+                life: 3000,
+              });
+             
+            },
+            (error) => {
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Failure',
+                detail: "échec de la modification de l'objet sélectionné",
+                life: 3000,
+              });
+            }
+          );
+      this.passwordDialog = false;
+      this.entity = {}
+    }
+  }
   clear(table: Table) {
     table.clear();
   }

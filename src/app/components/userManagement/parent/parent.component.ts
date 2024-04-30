@@ -30,6 +30,7 @@ export class ParentComponent {
   loading: boolean = true;
   submitted: boolean = false;
   entityDialog: boolean = false;
+  addDialog: boolean = false;
   first = 0;
   rows = 10;
   passwordDialog: boolean = false;
@@ -49,6 +50,7 @@ export class ParentComponent {
       { field: 'cin', header: 'CIN', filter: true },
       { field: 'studentsNames', header: 'Les etudiants', filter: true },
       { field: 'status', header: 'Status', filter: true },
+      { field: 'actions', header: 'Actions', filter: false },
     ];
     this.parentService.getAllParents().subscribe(
       (data) => {
@@ -102,7 +104,7 @@ export class ParentComponent {
   openNew() {
     this.entity = {};
     this.submitted = false;
-    this.entityDialog = true;
+    this.addDialog = true;
   }
 
   editEntity(parent: Parent) {
@@ -193,6 +195,7 @@ export class ParentComponent {
 
   hideDialog() {
     this.entityDialog = false;
+    this.addDialog = false;
     this.passwordDialog = false;
     this.submitted = false;
   }
@@ -333,6 +336,7 @@ export class ParentComponent {
           );
       }
       this.entityDialog = false;
+      this.addDialog = false;
       this.entity = {};
     }
   }
@@ -352,13 +356,14 @@ export class ParentComponent {
             cin: this.entity.cin,
           })
           .subscribe(
-            (data: any) => {
+            (data: any) => {  
               this.messageService.add({
                 severity: 'success',
                 summary: 'Successful',
                 detail: "L'Objet a été modifiée avec succès",
                 life: 3000,
               });
+             
             },
             (error) => {
               this.messageService.add({

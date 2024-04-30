@@ -30,6 +30,8 @@ export class RecieverComponent {
   first = 0;
   rows = 10;
   filteredEntities: Reciever[] = [];
+  passwordDialog: boolean = false;
+  addDialog: boolean = false;
   constructor(
     private recieverService: RecieverService,
     private formationService: FormationService,
@@ -41,7 +43,7 @@ export class RecieverComponent {
   ngOnInit() {
     this.cols = [
       { field: 'email', header: 'Username', filter: true },
-      { field: 'password', header: 'Password', filter: true },
+    //  { field: 'password', header: 'Password', filter: true },
       { field: 'name', header: 'Nom', filter: true },
       { field: 'formationName', header: 'Formation', filter: true },
       { field: 'status', header: 'Status', filter: true },
@@ -101,8 +103,8 @@ export class RecieverComponent {
 
   openNew() {
     this.entity = {};
+    this.addDialog = true;
     this.submitted = false;
-    this.entityDialog = true;
   }
 
   editEntity(reciever: Reciever) {
@@ -110,7 +112,11 @@ export class RecieverComponent {
     this.entity = { ...reciever };
     this.entityDialog = true;
   }
-
+  editPassword(reciever: Reciever) {
+    this.entity = { ...reciever };
+    this.entity.password = '';
+    this.passwordDialog = true;
+  }
   deleteEntity(reciever: Reciever) {
     this.confirmationService.confirm({
       message:
@@ -151,7 +157,7 @@ export class RecieverComponent {
   }
   onGlobalSearch(event: Event) {
     const searchTerm = (event.target as HTMLInputElement).value.toLowerCase();
-  
+
     if (searchTerm) {
       this.filteredEntities = this.entitys.filter((entity) => {
         return entity.email?.toLowerCase().includes(searchTerm)
@@ -203,6 +209,8 @@ export class RecieverComponent {
 
   hideDialog() {
     this.entityDialog = false;
+    this.passwordDialog = false;
+    this.addDialog = false;
     this.submitted = false;
   }
 
@@ -325,10 +333,46 @@ export class RecieverComponent {
           );
       }
       this.entityDialog = false;
+      this.addDialog = false;
       this.entity = {};
     }
   }
+  editPasswordProduct() {
+    this.submitted = true;
+    if (this.entity.email?.trim()) {
+      const index: any = this.entity.id;
+        this.recieverService
+          .editReceiverPassword({
+            id: this.entity.id,
+            email: this.entity.email,
+            password: this.entity.password,
+            status: this.entity.status,
+            name: this.entity.name,
+            formationName: this.entity.formationName,
+          })
+          .subscribe(
+            (data: any) => {
+              this.messageService.add({
+                severity: 'success',
+                summary: 'Successful',
+                detail: "L'Objet a été modifiée avec succès",
+                life: 3000,
+              });
 
+            },
+            (error) => {
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Failure',
+                detail: "échec de la modification de l'objet sélectionné",
+                life: 3000,
+              });
+            }
+          );
+      this.passwordDialog = false;
+      this.entity = {}
+    }
+  }
   clear(table: Table) {
     table.clear();
   }
