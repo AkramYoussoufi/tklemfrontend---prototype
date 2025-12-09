@@ -12,7 +12,7 @@ export class RecieverService {
   constructor(private http: HttpClient, private cookieService: CookieService) {
     this.headers = this.headers
       .set('Content-Type', 'application/json')
-      .set('Authorization', this.cookieService.get('token'));
+      .set('Authorization', `Bearer ${this.cookieService.get('token')}`)
   }
 
   getAllRecievers() {
